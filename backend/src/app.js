@@ -1,4 +1,4 @@
-const path = require("path");
+﻿const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -13,12 +13,19 @@ function createApp() {
   const app = express();
 
   app.use(helmet());
-  app.use(
-    cors({
-      origin: process.env.CORS_ORIGIN || "http://localhost:5173",
-      credentials: false
-    })
-  );
+
+  const corsOrigin = process.env.CORS_ORIGIN;
+  if (corsOrigin) {
+    app.use(
+      cors({
+        origin: corsOrigin
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+        credentials: false
+      })
+    );
+  }
 
   app.use(express.json({ limit: "1mb" }));
 
@@ -37,10 +44,7 @@ function createApp() {
 
   app.use((err, _req, res, _next) => {
     const status = Number(err?.statusCode || err?.status || 500);
-    const message =
-      status >= 500
-        ? "Internal server error"
-        : err?.message || "Request failed";
+    const message = status >= 500 ? "Internal server error" : err?.message || "Request failed";
 
     if (status >= 500) console.error("[backend] request error", err);
     return res.status(status).json({ error: message });

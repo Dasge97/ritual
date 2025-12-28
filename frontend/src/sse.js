@@ -1,8 +1,8 @@
-import { getAuthToken } from "./stores/auth";
+﻿import { getAuthToken } from "./stores/auth";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "");
 
-// Comentario en español: Cliente SSE vía fetch streaming para poder enviar Authorization header.
+// Comentario en espaÃ±ol: Cliente SSE vÃ­a fetch streaming para poder enviar Authorization header.
 export function subscribeRitualEvents(groupId, onState) {
   const controller = new AbortController();
   let closed = false;
@@ -73,4 +73,5 @@ export function subscribeRitualEvents(groupId, onState) {
     }
   };
 }
+
 

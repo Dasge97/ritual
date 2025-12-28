@@ -8,7 +8,7 @@ function sha256Hex(input) {
 }
 
 function getFrontendBaseUrl() {
-  return process.env.FRONTEND_BASE_URL || process.env.CORS_ORIGIN || "http://localhost:5173";
+  return process.env.FRONTEND_BASE_URL || process.env.CORS_ORIGIN;
 }
 
 async function assertGroupMember(connection, groupId, userId) {
@@ -401,5 +401,6 @@ async function groupHistory(req, res) {
 }
 
 module.exports = { listGroups, createGroup, acceptInvite, getGroup, inviteToGroup, groupHistory };
+
 
 

@@ -1,4 +1,4 @@
-const mysql = require("mysql2/promise");
+﻿const mysql = require("mysql2/promise");
 const { getEnv } = require("./env");
 
 let pool;
@@ -9,13 +9,13 @@ function getPool() {
 }
 
 async function initDb() {
-  const host = getEnv("DB_HOST", "localhost");
+  const host = getEnv("DB_HOST", "mysql");
   const port = Number(getEnv("DB_PORT", "3306"));
   const user = getEnv("DB_USER", "app");
   const password = getEnv("DB_PASSWORD", "apppass");
   const database = getEnv("DB_NAME", "ritual");
 
-  // Comentario en español: Reintentos básicos porque MySQL puede tardar en iniciar en Docker.
+  // Comentario en espaÃ±ol: Reintentos bÃ¡sicos porque MySQL puede tardar en iniciar en Docker.
   const maxAttempts = 30;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
@@ -56,4 +56,5 @@ async function withTransaction(fn) {
 }
 
 module.exports = { initDb, getPool, withTransaction };
+
 

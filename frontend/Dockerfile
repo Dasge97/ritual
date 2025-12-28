@@ -1,4 +1,4 @@
-FROM node:20-alpine
+﻿FROM node:20-alpine
 
 WORKDIR /app
 
@@ -13,5 +13,5 @@ RUN npm run build
 
 RUN npm i -g serve
 
-EXPOSE 5173
-CMD ["serve", "-s", "dist", "-l", "5173"]
+EXPOSE 80
+CMD ["serve", "-s", "dist", "-l", "80"]

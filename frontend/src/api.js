@@ -1,6 +1,6 @@
 ﻿import { getAuthToken, clearAuth } from "./stores/auth";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "");
 
 export async function apiFetch(path, { method = "GET", body, isForm = false } = {}) {
   const headers = {};
@@ -29,3 +29,4 @@ export async function apiFetch(path, { method = "GET", body, isForm = false } = 
   }
   return data;
 }
+

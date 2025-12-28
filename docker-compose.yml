@@ -16,7 +16,7 @@ services:
       - ritual_mysql_data:/var/lib/mysql
       - ./mysql/init.sql:/docker-entrypoint-initdb.d/00_init.sql:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -67,7 +67,7 @@ services:
     build:
       context: ./frontend
       args:
-        VITE_API_BASE_URL: https://${APP_HOST}
+        VITE_API_BASE_URL: ""
     restart: unless-stopped
     networks:
       - web
@@ -99,3 +99,4 @@ networks:
     internal: true
   web:
     external: true
+
