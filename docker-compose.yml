@@ -1,0 +1,101 @@
+﻿version: "3.9"
+
+services:
+  mysql:
+    container_name: ritual-mysql
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    expose:
+      - "3306"
+    volumes:
+      - ritual_mysql_data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/00_init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - internal
+
+  backend:
+    container_name: ritual-backend
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      DB_NAME: ${MYSQL_DATABASE}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      CORS_ORIGIN: https://${APP_HOST}
+      FRONTEND_BASE_URL: https://${APP_HOST}
+      UPLOADS_DIR: /app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - internal
+      - web
+    expose:
+      - "3000"
+    volumes:
+      - backend_uploads:/app/uploads
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web
+      - traefik.http.routers.ritual-api.rule=Host(`${APP_HOST}`) && PathPrefix(`/api`)
+      - traefik.http.routers.ritual-api.entrypoints=websecure
+      - traefik.http.routers.ritual-api.tls=true
+      - traefik.http.routers.ritual-api.tls.certresolver=${TRAEFIK_CERTRESOLVER:-myresolver}
+      - traefik.http.routers.ritual-api.priority=100
+      - traefik.http.routers.ritual-api.middlewares=ritual-security@docker
+      - traefik.http.services.ritual-api.loadbalancer.server.port=3000
+
+  frontend:
+    container_name: ritual-frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: https://${APP_HOST}
+    restart: unless-stopped
+    networks:
+      - web
+    expose:
+      - "80"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web
+      - traefik.http.routers.ritual.rule=Host(`${APP_HOST}`)
+      - traefik.http.routers.ritual.entrypoints=websecure
+      - traefik.http.routers.ritual.tls=true
+      - traefik.http.routers.ritual.tls.certresolver=${TRAEFIK_CERTRESOLVER:-myresolver}
+      - traefik.http.routers.ritual.priority=10
+      - traefik.http.routers.ritual.middlewares=ritual-security@docker
+      - traefik.http.services.ritual.loadbalancer.server.port=80
+      - traefik.http.middlewares.ritual-security.headers.contentsecuritypolicy=upgrade-insecure-requests
+      - traefik.http.middlewares.ritual-security.headers.stsseconds=31536000
+      - traefik.http.middlewares.ritual-security.headers.stsincludesubdomains=true
+      - traefik.http.middlewares.ritual-security.headers.stspreload=true
+      - traefik.http.middlewares.ritual-security.headers.framedeny=true
+      - traefik.http.middlewares.ritual-security.headers.contenttypenosniff=true
+
+volumes:
+  ritual_mysql_data:
+  backend_uploads:
+
+networks:
+  internal:
+    internal: true
+  web:
+    external: true
